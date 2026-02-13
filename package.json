@@ -1,0 +1,33 @@
+{
+  "name": "realtime-colab",
+  "workspaces": [
+    "app/*",
+    "packages/*"
+  ],
+  "private": "true",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:server": "npm run dev --workspace=server",
+    "dev": "npm-run-all --parallel dev:*",
+    "build": "npm run build --workspaces",
+    "start": "npm run start --workspaces"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/segnitsega/realtime-colab.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/segnitsega/realtime-colab/issues"
+  },
+  "homepage": "https://github.com/segnitsega/realtime-colab#readme",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}
