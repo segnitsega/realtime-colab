@@ -7,6 +7,7 @@ import { connectDB } from "./config/db";
 import { authMiddleware } from "./middleware/auth";
 import { errorHandler } from "./middleware/errorHandler";
 import { authRouter } from "./routes/auth.route";
+import { apiRouter } from "./api.router";
 
 dotenv.config();
 
@@ -31,11 +32,9 @@ const startServer = async () => {
 
     app.get("/health", (req, res) => res.send("OK"));
 
-    app.use("/auth", authRouter)
+    app.use("/auth", authRouter);
 
-    // app.use("/api", authMiddleware, require("./routes"));
-    app.use("/api", authMiddleware, authRouter);
-    
+    app.use("/api", authMiddleware, apiRouter);
 
     app.use(errorHandler);
 

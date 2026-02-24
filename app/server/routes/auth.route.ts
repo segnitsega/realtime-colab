@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload, VerifyErrors } from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { User } from "../models/user";
 import { AppError } from "../utils/AppError";
@@ -85,9 +85,9 @@ authRouter.post("/login", async (req: Request, res: Response) => {
     throw new AppError("Invalid email or password", 401);
   }
 
-  if (!user.passwordHash) {
-    throw new AppError("Please log in using your OAuth provider", 400);
-  }
+  //   if (!user.passwordHash) {
+  //     throw new AppError("Please log in using your OAuth provider", 400);
+  //   }
 
   const passwordMatch = await bcrypt.compare(password, user.password);
   if (!passwordMatch) {
@@ -131,3 +131,61 @@ authRouter.post("/login", async (req: Request, res: Response) => {
     },
   });
 });
+
+authRouter.get("/refresh", async (req: Request, res: Response) => {
+  try {
+    let refreshToken = req.headers["authorization"]?.split(" ")[1];
+    if (!refreshToken) {
+      throw new AppError("No refresh token provided", 401);
+    }
+
+    const secretKey = process.env.JWT_SECRET;
+    const refreshKey = process.env.JWT_REFRESH_SECRET;
+
+    if (!secretKey || !refreshKey) {
+      throw new AppError(
+        "Server configuration error: Missing JWT secrets",
+        500,
+      );
+    }
+
+    const foundUser = await User.findOne({ refreshToken });
+    if (!foundUser) {
+      throw new AppError("Invalid refresh token", 401);
+    }
+
+    jwt.verify(
+      refreshToken,
+      refreshKey,
+      (
+        error: VerifyErrors | null,
+        decoded: string | JwtPayload | undefined,
+      ) => {
+        if (error) {
+          throw new AppError("Invalid refresh token", 401);
+        }
+
+        const newAccessToken = jwt.sign(
+          {
+            id: foundUser._id,
+            username: foundUser.username,
+          },
+          secretKey,
+          { expiresIn: "2h" },
+        );
+
+        res.status(200).json({
+          message: "Token refreshed",
+          token: newAccessToken,
+        });
+      },
+    );
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    } else {
+      throw new AppError("Server error", 500);
+    }
+  }
+});
+
