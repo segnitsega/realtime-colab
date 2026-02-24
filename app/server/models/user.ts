@@ -4,8 +4,9 @@ const userSchema = new mongoose.Schema(
   {
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    passwordHash: { type: String },
+    password: { type: String },
+    googleId: {type: String, unique: true, sparse: true},
+    discordId: {type: String, unique: true, sparse: true},
     avatar_url: { type: String },
     bio: { type: String },
     online: { type: Boolean, default: false },
@@ -13,7 +14,7 @@ const userSchema = new mongoose.Schema(
     status: { type: String, default: "offline" },
     role: { type: String, default: "user" },
     refreshToken: { type: String },
-  },
+  }, 
   { timestamps: true },
 );
 
