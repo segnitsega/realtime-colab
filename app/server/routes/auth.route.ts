@@ -480,3 +480,30 @@ authRouter.put(
     });
   },
 );
+
+authRouter.post(
+  "/logout",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    user.refreshToken = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  },
+);
+
