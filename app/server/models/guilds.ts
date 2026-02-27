@@ -21,6 +21,9 @@ const guildSchema = new Schema(
           enum: ["owner", "admin", "moderator", "member"],
           default: "member",
         },
+        nick: {
+          type: String,
+        },
         joinedAt: {
           type: Date,
           default: Date.now,
