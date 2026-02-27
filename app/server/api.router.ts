@@ -5,4 +5,4 @@ import { guildsRouter } from "./routes/guilds.route";
 export const apiRouter = express.Router();
 
 apiRouter.use("/users", usersRouter);
-apiRouter.use("/guilds", guildsRouter)
+apiRouter.use("/guilds", guildsRouter);

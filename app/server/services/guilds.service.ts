@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { Guild } from "../models/guilds";
 import { AppError } from "../utils/AppError";
 import {
@@ -6,12 +7,22 @@ import {
   ensureRoleAtLeast,
 } from "../utils/permissions";
 
+const findGuildOrThrowError = async (guildId: string) => {
+  const guild = await Guild.findById(guildId);
+  if (!guild) throw new AppError("Guild not found", 404);
+  return guild;
+};
+
 // Create a new guild
 export const createNewGuild = async (
   userId: string,
-  data: { name: string; icon?: string; description?: string; isPublic?: boolean },
+  data: {
+    name: string;
+    icon?: string;
+    description?: string;
+    isPublic?: boolean;
+  },
 ) => {
-
   const { name, icon, description, isPublic } = data;
 
   if (!name) {
@@ -37,7 +48,6 @@ export const createNewGuild = async (
 
 // Get list of guilds the user is in
 export const getGuildsUserIsIn = async (userId: string) => {
-
   const guilds = await Guild.find({
     $or: [{ owner: userId }, { "members.user": userId }],
   });
@@ -46,12 +56,8 @@ export const getGuildsUserIsIn = async (userId: string) => {
 };
 
 // Get guild details
-export const getGuildDetail = async(userId: string, guildId: string) => {
-  const guild = await Guild.findById(guildId);
-
-  if (!guild) {
-    throw new AppError("Guild not found", 404);
-  }
+export const getGuildDetail = async (userId: string, guildId: string) => {
+  const guild = await findGuildOrThrowError(guildId);
 
   ensureGuildMember(guild, userId);
 
@@ -59,17 +65,17 @@ export const getGuildDetail = async(userId: string, guildId: string) => {
 };
 
 // Update guild settings
-export const updateGuildSettings = async(
+export const updateGuildSettings = async (
   userId: string,
-  guildId:string,
-  data: { name?: string; icon?: string; description?: string; isPublic?: boolean },
+  guildId: string,
+  data: {
+    name?: string;
+    icon?: string;
+    description?: string;
+    isPublic?: boolean;
+  },
 ) => {
-
-  const guild = await Guild.findById(guildId);
-
-  if (!guild) {
-    throw new AppError("Guild not found", 404);
-  }
+  const guild = await findGuildOrThrowError(guildId);
 
   if (guild.owner.toString() !== userId) {
     throw new AppError("Only the guild owner can update settings", 403);
@@ -88,13 +94,8 @@ export const updateGuildSettings = async(
 };
 
 // Delete guild (owner only)
-export const deleteGuild = async(userId: string, guildId:string) => {
-
-  const guild = await Guild.findById(guildId);
-
-  if (!guild) {
-    throw new AppError("Guild not found", 404);
-  }
+export const deleteGuild = async (userId: string, guildId: string) => {
+  const guild = await findGuildOrThrowError(guildId);
 
   if (guild.owner.toString() !== userId) {
     throw new AppError("Only the guild owner can delete this guild", 403);
@@ -106,13 +107,8 @@ export const deleteGuild = async(userId: string, guildId:string) => {
 };
 
 // Get channels in a guild
-export const getGuildChannels = async(userId: string, guildId:string) => {
-
-  const guild = await Guild.findById(guildId);
-
-  if (!guild) {
-    throw new AppError("Guild not found", 404);
-  }
+export const getGuildChannels = async (userId: string, guildId: string) => {
+  const guild = await findGuildOrThrowError(guildId);
 
   ensureGuildMember(guild, userId);
 
@@ -131,17 +127,13 @@ export const createGuildChannel = async (
     throw new AppError("Channel name is required", 400);
   }
 
-  const guild = await Guild.findById(guildId);
-
-  if (!guild) {
-    throw new AppError("Guild not found", 404);
-  }
+  const guild = await findGuildOrThrowError(guildId);
 
   ensureRoleAtLeast(guild, userId, ["owner", "admin", "moderator"]);
 
   guild.channels.push({
     name,
-    type: type ?? "text",
+    type: (type === "voice" ? "voice" : "text") as "text" | "voice",
     topic,
   });
 
@@ -157,9 +149,7 @@ export const listGuildMembers = async (userId: string, guildId: string) => {
     "username email avatar_url",
   );
 
-  if (!guild) {
-    throw new AppError("Guild not found", 404);
-  }
+  if (!guild) throw new AppError("Guild not found", 404);
 
   ensureGuildMember(guild, userId);
 
@@ -172,11 +162,7 @@ export const joinGuild = async (
   guildId: string,
   inviteCode?: string,
 ) => {
-  const guild = await Guild.findById(guildId);
-
-  if (!guild) {
-    throw new AppError("Guild not found", 404);
-  }
+  const guild = await findGuildOrThrowError(guildId);
 
   const alreadyMember =
     guild.owner.toString() === userId ||
@@ -193,7 +179,7 @@ export const joinGuild = async (
   }
 
   guild.members.push({
-    user: userId,
+    user: userId as unknown as Types.ObjectId,
     role: "member",
   });
 
@@ -204,11 +190,7 @@ export const joinGuild = async (
 
 // Leave guild
 export const leaveGuild = async (userId: string, guildId: string) => {
-  const guild = await Guild.findById(guildId);
-
-  if (!guild) {
-    throw new AppError("Guild not found", 404);
-  }
+  const guild = await findGuildOrThrowError(guildId);
 
   if (guild.owner.toString() === userId) {
     throw new AppError("Guild owner cannot leave their own guild", 400);
@@ -237,11 +219,7 @@ export const updateGuildMember = async (
 ) => {
   const { role, nick } = data;
 
-  const guild = await Guild.findById(guildId);
-
-  if (!guild) {
-    throw new AppError("Guild not found", 404);
-  }
+  const guild = await findGuildOrThrowError(guildId);
 
   ensureRoleAtLeast(guild, currentUserId, ["owner", "admin", "moderator"]);
 
@@ -260,10 +238,7 @@ export const updateGuildMember = async (
     }
 
     if (roleValue === "owner" && guild.owner.toString() !== currentUserId) {
-      throw new AppError(
-        "Only the current owner can transfer ownership",
-        403,
-      );
+      throw new AppError("Only the current owner can transfer ownership", 403);
     }
 
     member.role = roleValue;
@@ -288,11 +263,7 @@ export const kickGuildMember = async (
   guildId: string,
   userId: string,
 ) => {
-  const guild = await Guild.findById(guildId);
-
-  if (!guild) {
-    throw new AppError("Guild not found", 404);
-  }
+  const guild = await findGuildOrThrowError(guildId);
 
   ensureRoleAtLeast(guild, currentUserId, ["owner", "admin", "moderator"]);
 
