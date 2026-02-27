@@ -3,9 +3,10 @@ import jwt, { JwtPayload, VerifyErrors } from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { User } from "../models/user";
 import { AppError } from "../utils/AppError";
+import { authMiddleware } from "../middleware/auth";
 
 export const authRouter = express.Router();
-
+2
 authRouter.post("/signup", async (req: Request, res: Response) => {
   const { email, username, password } = req.body;
 
@@ -372,3 +373,110 @@ authRouter.get("/discord/callback", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Authentication failed" });
   }
 });
+
+authRouter.get("/me", authMiddleware, async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw new AppError("Unauthorized", 401);
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Current user profile fetched successfully",
+    data: {
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        avatarUrl: user.avatar_url,
+        bio: user.bio,
+        status: user.status,
+        role: user.role,
+      },
+    },
+  });
+});
+
+authRouter.put(
+  "/me",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const { username, email, avatarUrl, avatar_url, bio, status } = req.body;
+
+    const updates: {
+      username?: string;
+      email?: string;
+      avatar_url?: string;
+      bio?: string;
+      status?: string;
+    } = {};
+
+    if (username) {
+      const existingUsername = await User.findOne({
+        username,
+        _id: { $ne: userId },
+      });
+      if (existingUsername) {
+        throw new AppError("Username is already taken", 409);
+      }
+      updates.username = username;
+    }
+
+    if (email) {
+      const existingEmail = await User.findOne({ email, _id: { $ne: userId } });
+      if (existingEmail) {
+        throw new AppError("Email is already registered", 409);
+      }
+      updates.email = email;
+    }
+
+    if (avatarUrl || avatar_url) {
+      updates.avatar_url = avatarUrl ?? avatar_url;
+    }
+
+    if (bio !== undefined) {
+      updates.bio = bio;
+    }
+
+    if (status !== undefined) {
+      updates.status = status;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+    });
+
+    if (!updatedUser) {
+      throw new AppError("User not found", 404);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User profile updated successfully",
+      data: {
+        user: {
+          id: updatedUser._id,
+          username: updatedUser.username,
+          email: updatedUser.email,
+          avatarUrl: updatedUser.avatar_url,
+          bio: updatedUser.bio,
+          status: updatedUser.status,
+          role: updatedUser.role,
+        },
+      },
+    });
+  },
+);
