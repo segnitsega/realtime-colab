@@ -8,10 +8,11 @@ import {
   getChannels,
   createChannel,
   getMembers,
-  joinGuildMember,
   leaveGuildMember,
   updateMember,
   kickMember,
+  joinInviteController,
+  createInviteController,
 } from "../controllers/guilds.controller";
 
 export const guildsRouter = express.Router();
@@ -40,8 +41,11 @@ guildsRouter.post("/:guildId/channels", createChannel);
 // List guild members
 guildsRouter.get("/:guildId/members", getMembers);
 
-//  Join guild (via invite)
-guildsRouter.put("/:guildId/members/@me", joinGuildMember);
+// Create an invite link to a guild
+guildsRouter.post("/:guildId/invite", createInviteController);
+
+// join guild via invite link
+guildsRouter.post("/invite/:code/join", joinInviteController);
 
 // Leave guild
 guildsRouter.delete("/:guildId/members/@me", leaveGuildMember);

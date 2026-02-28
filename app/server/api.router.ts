@@ -6,3 +6,5 @@ export const apiRouter = express.Router();
 
 apiRouter.use("/users", usersRouter);
 apiRouter.use("/guilds", guildsRouter);
+
+

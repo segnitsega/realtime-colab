@@ -13,6 +13,7 @@ import {
   updateGuildMember,
   kickGuildMember,
 } from "../services/guilds.service";
+import { joinViaInvite, createInvite } from "../services/invite.guilds.service";
 
 export const createGuild = async (req: Request, res: Response) => {
   const guild = await createNewGuild(req.user!.id, req.body);
@@ -27,7 +28,7 @@ export const getGuilds = async (req: Request, res: Response) => {
   const guilds = await getGuildsUserIsIn(req.user!.id);
   res.status(200).json({
     success: true,
-    data: { guilds },
+    data: { length: guilds.length, guilds },
   });
 };
 
@@ -64,7 +65,7 @@ export const getChannels = async (req: Request, res: Response) => {
   const channels = await getGuildChannels(req.user!.id, guildId);
   res.status(200).json({
     success: true,
-    data: { channels },
+    data: {length:channels.length, channels },
   });
 };
 
@@ -83,20 +84,38 @@ export const getMembers = async (req: Request, res: Response) => {
   const members = await listGuildMembers(req.user!.id, guildId);
   res.status(200).json({
     success: true,
-    data: { members },
+    data: { length: members.length, members },
   });
 };
 
-export const joinGuildMember = async (req: Request, res: Response) => {
+export const createInviteController = async (req: Request, res: Response) => {
   const guildId = req.params.guildId as string;
-  const { inviteCode } = req.body;
-  const guild = await joinGuild(req.user!.id, guildId, inviteCode);
+  const invite = await createInvite(
+    req.user!.id,
+    guildId,
+    req.body
+  );
+
+  res.status(201).json({
+    success: true,
+    data: { invite },
+  });
+};
+
+export const joinInviteController = async (req: Request, res: Response) => {
+  const inviteCode = req.params.code as string;
+  const guild = await joinViaInvite(
+    req.user!.id,
+    inviteCode
+  );
+
   res.status(200).json({
     success: true,
     message: "Joined guild successfully",
     data: { guild },
   });
 };
+
 
 export const leaveGuildMember = async (req: Request, res: Response) => {
   const guildId = req.params.guildId as string;
