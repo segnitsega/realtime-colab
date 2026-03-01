@@ -12,6 +12,9 @@ const inviteSchema = new Schema(
       ref: "Guild",
       required: true,
     },
+    channelId: {
+      type: String,
+    },
     createdBy: {
       type: Types.ObjectId,
       ref: "User",
