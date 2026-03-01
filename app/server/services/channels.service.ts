@@ -5,9 +5,12 @@ import { Message } from "../models/message";
 import { Invite } from "../models/invite.guilds";
 import { AppError } from "../utils/AppError";
 import { ensureGuildMember, ensureRoleAtLeast } from "../utils/permissions";
+import { emitChannelEvent } from "../realtime/channel.events";
 
 const findGuildByChannelOrThrow = async (channelId: string) => {
-  const guild = await Guild.findOne({ "channels._id": new Types.ObjectId(channelId) });
+  const guild = await Guild.findOne({
+    "channels._id": new Types.ObjectId(channelId),
+  });
   if (!guild) {
     throw new AppError("Channel not found", 404);
   }
@@ -72,17 +75,17 @@ export const deleteChannel = async (userId: string, channelId: string) => {
   return true;
 };
 
-export const markUserTypingInChannel = async (
-  userId: string,
-  channelId: string,
-) => {
-  const { guild } = await findGuildByChannelOrThrow(channelId);
+// export const markUserTypingInChannel = async (
+//   userId: string,
+//   channelId: string,
+// ) => {
+//   const { guild } = await findGuildByChannelOrThrow(channelId);
 
-  ensureGuildMember(guild, userId);
+//   ensureGuildMember(guild, userId);
 
-  // Placeholder for real-time typing indicator integration (e.g. websockets)
-  return true;
-};
+//   // Placeholder for real-time typing indicator integration (e.g. websockets)
+//   return true;
+// };
 
 export const getChannelMessages = async (
   userId: string,
@@ -144,6 +147,11 @@ export const createChannelMessage = async (
     content: data.content,
   });
 
+//   emitChannelEvent(channelId, "message:created", {
+//     channelId,
+//     messageId: message._id,
+//   });
+
   return message;
 };
 
@@ -174,6 +182,11 @@ export const updateChannelMessage = async (
   message.content = data.content;
   await message.save();
 
+//   emitChannelEvent(message.channelId, "message:updated", {
+//     channelId: message.channelId,
+//     messageId: message._id,
+//   });
+
   return message;
 };
 
@@ -197,6 +210,11 @@ export const deleteChannelMessage = async (
   }
 
   await message.deleteOne();
+
+//   emitChannelEvent(message.channelId, "message:deleted", {
+//     channelId: message.channelId,
+//     messageId: messageId,
+//   });
 
   return true;
 };
@@ -249,3 +267,153 @@ export const listChannelInvites = async (userId: string, channelId: string) => {
   }));
 };
 
+export const addReactionToMessage = async (
+  userId: string,
+  channelId: string,
+  messageId: string,
+  data: { emoji: string },
+) => {
+  if (!data.emoji) {
+    throw new AppError("Emoji is required", 400);
+  }
+
+  const { guild } = await findGuildByChannelOrThrow(channelId);
+  ensureGuildMember(guild, userId);
+
+  const message = await Message.findOne({ _id: messageId, channelId });
+  if (!message) {
+    throw new AppError("Message not found", 404);
+  }
+
+  const existing = message.reactions?.find(
+    (r: any) => r.emoji === data.emoji && r.user.toString() === userId,
+  );
+  if (!existing) {
+    message.reactions?.push({
+      emoji: data.emoji,
+      user: userId as unknown as Types.ObjectId,
+    } as any);
+  }
+
+  await message.save();
+
+//   emitChannelEvent(channelId, "reaction:added", {
+//     channelId,
+//     messageId: message._id,
+//     emoji: data.emoji,
+//     userId,
+//   });
+
+  return message;
+};
+
+export const removeReactionFromMessage = async (
+  userId: string,
+  channelId: string,
+  messageId: string,
+  emoji: string,
+) => {
+  if (!emoji) {
+    throw new AppError("Emoji is required", 400);
+  }
+
+  const { guild } = await findGuildByChannelOrThrow(channelId);
+  ensureGuildMember(guild, userId);
+
+  const message = await Message.findOne({ _id: messageId, channelId });
+  if (!message) {
+    throw new AppError("Message not found", 404);
+  }
+
+  (message as any).reactions =
+    message.reactions?.filter(
+      (r: any) => !(r.emoji === emoji && r.user.toString() === userId),
+    ) ?? [];
+
+  await message.save();
+
+//   emitChannelEvent(channelId, "reaction:removed", {
+//     channelId,
+//     messageId: message._id,
+//     emoji,
+//     userId,
+//   });
+
+  return message;
+};
+
+export const pinMessage = async (
+  userId: string,
+  channelId: string,
+  messageId: string,
+) => {
+  const { guild } = await findGuildByChannelOrThrow(channelId);
+
+  ensureRoleAtLeast(guild, userId, ["owner", "admin", "moderator"]);
+
+  const message = await Message.findOne({ _id: messageId, channelId });
+  if (!message) {
+    throw new AppError("Message not found", 404);
+  }
+
+  message.pinned = true;
+  message.pinnedAt = new Date();
+  await message.save();
+
+//   emitChannelEvent(channelId, "message:pinned", {
+//     channelId,
+//     messageId: message._id,
+//   });
+
+  return message;
+};
+
+export const unpinMessage = async (
+  userId: string,
+  channelId: string,
+  messageId: string,
+) => {
+  const { guild } = await findGuildByChannelOrThrow(channelId);
+
+  ensureRoleAtLeast(guild, userId, ["owner", "admin", "moderator"]);
+
+  const message = await Message.findOne({ _id: messageId, channelId });
+  if (!message) {
+    throw new AppError("Message not found", 404);
+  }
+
+  message.pinned = false;
+  message.pinnedAt = undefined;
+  await message.save();
+
+//   emitChannelEvent(channelId, "message:unpinned", {
+//     channelId,
+//     messageId: message._id,
+//   });
+
+  return message;
+};
+
+export const getPinnedMessages = async (userId: string, channelId: string) => {
+  const { guild } = await findGuildByChannelOrThrow(channelId);
+  ensureGuildMember(guild, userId);
+
+  const pinnedMessages = await Message.find({
+    channelId,
+    pinned: true,
+  })
+    .sort({ pinnedAt: -1 })
+    .populate("sender", "username avatar_url");
+
+  return pinnedMessages.map((msg: any) => ({
+    id: msg._id,
+    content: msg.content,
+    pinnedAt: msg.pinnedAt,
+    createdAt: msg.createdAt,
+    sender: msg.sender && {
+      id: msg.sender._id,
+      username: msg.sender.username,
+      avatarUrl: msg.sender.avatar_url,
+    },
+  }));
+};

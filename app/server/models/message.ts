@@ -20,6 +20,30 @@ const messageSchema = new Schema(
       type: String,
       required: true,
     },
+    reactions: [
+      {
+        emoji: {
+          type: String,
+          required: true,
+        },
+        user: {
+          type: Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    pinned: {
+      type: Boolean,
+      default: false,
+    },
+    pinnedAt: {
+      type: Date,
+    },
   },
   { timestamps: true },
 );

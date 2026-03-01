@@ -3,14 +3,22 @@ import {
   getChannelDetail,
   updateChannel,
   deleteChannel,
-  markUserTypingInChannel,
+  // markUserTypingInChannel,
   getChannelMessages,
   createChannelMessage,
   updateChannelMessage,
   deleteChannelMessage,
   createChannelInvite,
   listChannelInvites,
+  addReactionToMessage,
+  removeReactionFromMessage,
+  pinMessage,
+  unpinMessage,
+  getPinnedMessages,
 } from "../services/channels.service";
+import { emitChannelEvent } from "../realtime/channel.events";
+import { Message } from "../models/message";
+
 
 export const getChannelController = async (req: Request, res: Response) => {
   const channelId = req.params.channelId as string;
@@ -43,15 +51,15 @@ export const deleteChannelController = async (req: Request, res: Response) => {
   });
 };
 
-export const handleTypingController = async (req: Request, res: Response) => {
-  const channelId = req.params.channelId as string;
-  await markUserTypingInChannel(req.user!.id, channelId);
+// export const handleTypingController = async (req: Request, res: Response) => {
+//   const channelId = req.params.channelId as string;
+//   await markUserTypingInChannel(req.user!.id, channelId);
 
-  res.status(200).json({
-    success: true,
-    message: "Typing status updated",
-  });
-};
+//   res.status(200).json({
+//     success: true,
+//     message: "Typing status updated",
+//   });
+// };
 
 export const getChatHistoryController = async (req: Request, res: Response) => {
   const channelId = req.params.channelId as string;
@@ -73,6 +81,11 @@ export const sendMessageController = async (req: Request, res: Response) => {
   const channelId = req.params.channelId as string;
   const message = await createChannelMessage(req.user!.id, channelId, req.body);
 
+  emitChannelEvent(channelId, "message:created", {
+    channelId,
+    messageId: message._id,
+  });
+
   res.status(201).json({
     success: true,
     message: "Message sent successfully",
@@ -83,12 +96,17 @@ export const sendMessageController = async (req: Request, res: Response) => {
 export const editMessageController = async (req: Request, res: Response) => {
   const channelId = req.params.channelId as string;
   const messageId = req.params.messageId as string;
-  const message = await updateChannelMessage(
+  const message: any = await updateChannelMessage(
     req.user!.id,
     channelId,
     messageId,
     req.body,
   );
+
+  emitChannelEvent(message.channelId, "message:updated", {
+    channelId: message.channelId,
+    messageId: message._id,
+  });
 
   res.status(200).json({
     success: true,
@@ -101,6 +119,14 @@ export const deleteMessageController = async (req: Request, res: Response) => {
   const channelId = req.params.channelId as string;
   const messageId = req.params.messageId as string;
   await deleteChannelMessage(req.user!.id, channelId, messageId);
+
+  const message = await Message.findOne({ _id: messageId, channelId });
+
+
+  emitChannelEvent(message!.channelId, "message:deleted", {
+    channelId: message!.channelId,
+    messageId: messageId,
+  });
 
   res.status(200).json({
     success: true,
@@ -126,5 +152,104 @@ export const getInvitesController = async (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     data: { length: invites.length, invites },
+  });
+};
+
+export const addReactionController = async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const channelId = req.params.channelId as string;
+  const messageId = req.params.messageId as string;
+  const message = await addReactionToMessage(
+    req.user!.id,
+    channelId,
+    messageId,
+    req.body,
+  );
+
+  emitChannelEvent(channelId, "reaction:added", {
+    channelId,
+    messageId: message._id,
+    emoji: req.body.emoji,
+    userId,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Reaction added successfully",
+    data: { message },
+  });
+};
+
+export const removeReactionController = async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const channelId = req.params.channelId as string;
+  const messageId = req.params.messageId as string;
+  const emoji = req.params.emoji as string;
+  const message = await removeReactionFromMessage(
+    req.user!.id,
+    channelId,
+    messageId,
+    emoji,
+  );
+
+  emitChannelEvent(channelId, "reaction:removed", {
+    channelId,
+    messageId: message._id,
+    emoji,
+    userId,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Reaction removed successfully",
+    data: { message },
+  });
+};
+
+export const pinMessageController = async (req: Request, res: Response) => {
+  const channelId = req.params.channelId as string;
+  const messageId = req.params.messageId as string;
+  const message = await pinMessage(req.user!.id, channelId, messageId);
+
+  emitChannelEvent(channelId, "message:pinned", {
+    channelId,
+    messageId: message._id,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Message pinned successfully",
+    data: { message },
+  });
+};
+
+export const unpinMessageController = async (req: Request, res: Response) => {
+  const channelId = req.params.channelId as string;
+  const messageId = req.params.messageId as string;
+  const message = await unpinMessage(req.user!.id, channelId, messageId);
+
+  emitChannelEvent(channelId, "message:unpinned", {
+    channelId,
+    messageId: message._id,
+  });
+
+
+  res.status(200).json({
+    success: true,
+    message: "Message unpinned successfully",
+    data: { message },
+  });
+};
+
+export const getPinnedMessagesController = async (
+  req: Request,
+  res: Response,
+) => {
+  const channelId = req.params.channelId as string;
+  const messages = await getPinnedMessages(req.user!.id, channelId);
+
+  res.status(200).json({
+    success: true,
+    data: { length: messages.length, messages },
   });
 };
