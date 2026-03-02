@@ -18,7 +18,7 @@ import {
 } from "../controllers/channels.controller";
 
 export const channelRouter = express.Router();
-
+  
 channelRouter.get("/:channelId", getChannelController);
 
 channelRouter.patch("/:channelId", updateChannelController);

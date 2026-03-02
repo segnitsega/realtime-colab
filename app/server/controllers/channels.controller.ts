@@ -17,7 +17,6 @@ import {
   getPinnedMessages,
 } from "../services/channels.service";
 import { emitChannelEvent } from "../realtime/channel.events";
-import { Message } from "../models/message";
 
 
 export const getChannelController = async (req: Request, res: Response) => {
@@ -120,11 +119,8 @@ export const deleteMessageController = async (req: Request, res: Response) => {
   const messageId = req.params.messageId as string;
   await deleteChannelMessage(req.user!.id, channelId, messageId);
 
-  const message = await Message.findOne({ _id: messageId, channelId });
-
-
-  emitChannelEvent(message!.channelId, "message:deleted", {
-    channelId: message!.channelId,
+  emitChannelEvent(channelId, "message:deleted", {
+    channelId: channelId,
     messageId: messageId,
   });
 
