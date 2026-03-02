@@ -75,18 +75,6 @@ export const deleteChannel = async (userId: string, channelId: string) => {
   return true;
 };
 
-// export const markUserTypingInChannel = async (
-//   userId: string,
-//   channelId: string,
-// ) => {
-//   const { guild } = await findGuildByChannelOrThrow(channelId);
-
-//   ensureGuildMember(guild, userId);
-
-//   // Placeholder for real-time typing indicator integration (e.g. websockets)
-//   return true;
-// };
-
 export const getChannelMessages = async (
   userId: string,
   channelId: string,

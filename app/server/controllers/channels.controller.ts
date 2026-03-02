@@ -3,7 +3,6 @@ import {
   getChannelDetail,
   updateChannel,
   deleteChannel,
-  // markUserTypingInChannel,
   getChannelMessages,
   createChannelMessage,
   updateChannelMessage,
@@ -17,6 +16,7 @@ import {
   getPinnedMessages,
 } from "../services/channels.service";
 import { emitChannelEvent } from "../realtime/channel.events";
+import { serializeMessage } from "../utils/serializeMessage";
 
 
 export const getChannelController = async (req: Request, res: Response) => {
@@ -50,16 +50,6 @@ export const deleteChannelController = async (req: Request, res: Response) => {
   });
 };
 
-// export const handleTypingController = async (req: Request, res: Response) => {
-//   const channelId = req.params.channelId as string;
-//   await markUserTypingInChannel(req.user!.id, channelId);
-
-//   res.status(200).json({
-//     success: true,
-//     message: "Typing status updated",
-//   });
-// };
-
 export const getChatHistoryController = async (req: Request, res: Response) => {
   const channelId = req.params.channelId as string;
   const page = parseInt((req.query.page as string) ?? "1", 10) || 1;
@@ -80,15 +70,18 @@ export const sendMessageController = async (req: Request, res: Response) => {
   const channelId = req.params.channelId as string;
   const message = await createChannelMessage(req.user!.id, channelId, req.body);
 
+  await message.populate("sender", "username avatar_url");
+  const serializedMessage = serializeMessage(message);
+
   emitChannelEvent(channelId, "message:created", {
     channelId,
-    messageId: message._id,
+    message: serializedMessage
   });
 
   res.status(201).json({
     success: true,
     message: "Message sent successfully",
-    data: { message },
+    data: { serializedMessage },
   });
 };
 
@@ -102,15 +95,19 @@ export const editMessageController = async (req: Request, res: Response) => {
     req.body,
   );
 
+  await message.populate("sender", "username avatar_url");
+  const serializedMessage = serializeMessage(message);
+
+
   emitChannelEvent(message.channelId, "message:updated", {
     channelId: message.channelId,
-    messageId: message._id,
+    message: serializedMessage,
   });
 
   res.status(200).json({
     success: true,
     message: "Message updated successfully",
-    data: { message },
+    data: { serializedMessage },
   });
 };
 
@@ -118,9 +115,9 @@ export const deleteMessageController = async (req: Request, res: Response) => {
   const channelId = req.params.channelId as string;
   const messageId = req.params.messageId as string;
   await deleteChannelMessage(req.user!.id, channelId, messageId);
-
+  
   emitChannelEvent(channelId, "message:deleted", {
-    channelId: channelId,
+    // channelId: channelId,
     messageId: messageId,
   });
 
@@ -162,9 +159,12 @@ export const addReactionController = async (req: Request, res: Response) => {
     req.body,
   );
 
+  await message.populate("sender", "username avatar_url");
+  const serializedMessage = serializeMessage(message);
+
   emitChannelEvent(channelId, "reaction:added", {
     channelId,
-    messageId: message._id,
+    message: serializedMessage,
     emoji: req.body.emoji,
     userId,
   });
@@ -188,9 +188,12 @@ export const removeReactionController = async (req: Request, res: Response) => {
     emoji,
   );
 
+  await message.populate("sender", "username avatar_url");
+  const serializedMessage = serializeMessage(message);
+
   emitChannelEvent(channelId, "reaction:removed", {
     channelId,
-    messageId: message._id,
+    message: serializedMessage,
     emoji,
     userId,
   });
@@ -207,9 +210,12 @@ export const pinMessageController = async (req: Request, res: Response) => {
   const messageId = req.params.messageId as string;
   const message = await pinMessage(req.user!.id, channelId, messageId);
 
+  await message.populate("sender", "username avatar_url");
+  const serializedMessage = serializeMessage(message);
+
   emitChannelEvent(channelId, "message:pinned", {
     channelId,
-    messageId: message._id,
+    message: serializedMessage,
   });
 
   res.status(200).json({
@@ -224,11 +230,13 @@ export const unpinMessageController = async (req: Request, res: Response) => {
   const messageId = req.params.messageId as string;
   const message = await unpinMessage(req.user!.id, channelId, messageId);
 
+  await message.populate("sender", "username avatar_url");
+  const serializedMessage = serializeMessage(message);
+
   emitChannelEvent(channelId, "message:unpinned", {
     channelId,
-    messageId: message._id,
+    message: serializedMessage,
   });
-
 
   res.status(200).json({
     success: true,

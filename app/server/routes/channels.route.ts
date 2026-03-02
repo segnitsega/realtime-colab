@@ -3,7 +3,6 @@ import {
   deleteChannelController,
   getChannelController,
   updateChannelController,
-  // handleTypingController,
   getChatHistoryController,
   sendMessageController,
   editMessageController,
@@ -18,14 +17,12 @@ import {
 } from "../controllers/channels.controller";
 
 export const channelRouter = express.Router();
-  
+
 channelRouter.get("/:channelId", getChannelController);
 
 channelRouter.patch("/:channelId", updateChannelController);
 
 channelRouter.delete("/:channelId", deleteChannelController);
-
-// channelRouter.post("/:channelId/typing", handleTypingController);
 
 // get message history (with pagination)
 channelRouter.get("/:channelId/messages", getChatHistoryController);
