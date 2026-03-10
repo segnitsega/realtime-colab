@@ -12,6 +12,7 @@ import { initSocket } from "./realtime/socket";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import { setSocketInstance } from "./realtime/channel.events";
+import { setDMSocketInstance } from "./realtime/dm.events";
 
 dotenv.config();
 
@@ -52,6 +53,7 @@ const startServer = async () => {
     });
     
     setSocketInstance(io);
+    setDMSocketInstance(io);
     initSocket(io);
 
     httpServer.listen(3000, () =>

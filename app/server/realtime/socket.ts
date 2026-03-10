@@ -30,6 +30,14 @@ export const initSocket = (io: Server) => {
       socket.leave(`channel:${channelId}`);
     });
 
+    socket.on("join:conversation", ({ conversationId }) => {
+      socket.join(`dm:${conversationId}`);
+    });
+
+    socket.on("leave:conversation", ({ conversationId }) => {
+      socket.leave(`dm:${conversationId}`);
+    });
+
     socket.on("typing:start", ({ channelId }) => {
       socket.to(`channel:${channelId}`).emit("user:typing", {
         userId,
@@ -40,6 +48,14 @@ export const initSocket = (io: Server) => {
       socket.to(`channel:${channelId}`).emit("user:stopTyping", {
         userId,
       });
+    });
+
+    socket.on("dm:typing:start", ({ conversationId }) => {
+      socket.to(`dm:${conversationId}`).emit("dm:user:typing", { userId });
+    });
+
+    socket.on("dm:typing:stop", ({ conversationId }) => {
+      socket.to(`dm:${conversationId}`).emit("dm:user:stopTyping", { userId });
     });
 
     socket.on("disconnect", () => {
