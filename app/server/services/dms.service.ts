@@ -23,11 +23,13 @@ async function ensureParticipant(conversation: any, userId: string) {
 }
 
 export async function getOrCreateConversation(userId: string, otherUserId: string) {
+  
   if (userId === otherUserId) {
     throw new AppError("Cannot create DM with yourself", 400);
   }
 
   const participantIds = normalizeParticipantIds(userId, otherUserId);
+  
   let conversation = await Conversation.findOne({
     type: "dm",
     participants: { $all: participantIds },

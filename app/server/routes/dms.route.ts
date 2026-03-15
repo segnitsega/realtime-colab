@@ -14,13 +14,13 @@ export const dmsRouter = express.Router();
 // List my DM conversations
 dmsRouter.get("/conversations", getConversationsController);
 
-// Get or create 1:1 conversation (body: { otherUserId })
+// Get or create 1:1 conversation
 dmsRouter.post("/conversations", getOrCreateConversationController);
 
 // Get one conversation
 dmsRouter.get("/conversations/:conversationId", getConversationController);
 
-// Get messages in a conversation (query: page, limit)
+// Get messages in a DM conversation (query: page, limit)
 dmsRouter.get("/conversations/:conversationId/messages", getConversationMessagesController);
 
 // Send message (body: { content })

@@ -4,7 +4,7 @@ import {
   getConversations,
   getConversation,
   getConversationMessages,
-  sendDMMessage,
+  sendDMMessage,  
   updateDMMessage,
   deleteDMMessage,
 } from "../services/dms.service";
@@ -13,12 +13,14 @@ import { serializeMessage } from "../utils/serializeMessage";
 
 export const getOrCreateConversationController = async (req: Request, res: Response) => {
   const otherUserId = req.body.otherUserId as string;
+
   if (!otherUserId) {
     return res.status(400).json({
       success: false,
       message: "otherUserId is required",
     });
   }
+
   const conversation = await getOrCreateConversation(req.user!.id, otherUserId);
   res.status(200).json({
     success: true,
@@ -47,6 +49,7 @@ export const getConversationMessagesController = async (req: Request, res: Respo
   const conversationId = req.params.conversationId as string;
   const page = parseInt((req.query.page as string) ?? "1", 10) || 1;
   const limit = parseInt((req.query.limit as string) ?? "50", 10) || 50;
+  
   const result = await getConversationMessages(req.user!.id, conversationId, {
     page,
     limit,

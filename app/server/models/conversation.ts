@@ -11,7 +11,7 @@ const conversationSchema = new Schema(
     ],
     type: {
       type: String,
-      enum: ["dm"], // I can add groups later. 
+      enum: ["dm", "group"], // I can add groups later. 
       default: "dm",
     },
   },
