@@ -73,14 +73,19 @@ export const googleCallbackController = async (req: Request, res: Response) => {
   try {
     const code = req.query.code as string;
     const result = await handleGoogleCallback(code);
-    res.status(200).json({
-      success: true,
-      message: "Google OAuth Login successful",
-      data: result,
-    });
+
+    const clientUrl = process.env.CLIENT_URL ?? "http://localhost:3000";
+    const redirectUrl = new URL("/dashboard", clientUrl);
+    redirectUrl.searchParams.set("token", result.token);
+    redirectUrl.searchParams.set("refreshToken", result.refreshToken);
+
+    res.redirect(redirectUrl.toString());
   } catch (error) {
     console.error("OAuth Error:", error);
-    res.status(500).json({ error: "Authentication failed" });
+    const clientUrl = process.env.CLIENT_URL ?? "http://localhost:3000";
+    const redirectUrl = new URL("/auth/signin", clientUrl);
+    redirectUrl.searchParams.set("error", "google_oauth_failed");
+    res.redirect(redirectUrl.toString());
   }
 };
 
@@ -92,14 +97,19 @@ export const discordCallbackController = async (req: Request, res: Response) => 
   try {
     const code = req.query.code as string;
     const result = await handleDiscordCallback(code);
-    res.status(200).json({
-      success: true,
-      message: "Discord OAuth Login successful",
-      data: result,
-    });
+
+    const clientUrl = process.env.CLIENT_URL ?? "http://localhost:3000";
+    const redirectUrl = new URL("/dashboard", clientUrl);
+    redirectUrl.searchParams.set("token", result.token);
+    redirectUrl.searchParams.set("refreshToken", result.refreshToken);
+
+    res.redirect(redirectUrl.toString());
   } catch (error) {
     console.error("Discord OAuth Error:", error);
-    res.status(500).json({ error: "Authentication failed" });
+    const clientUrl = process.env.CLIENT_URL ?? "http://localhost:3000";
+    const redirectUrl = new URL("/auth/signin", clientUrl);
+    redirectUrl.searchParams.set("error", "discord_oauth_failed");
+    res.redirect(redirectUrl.toString());
   }
 };
 

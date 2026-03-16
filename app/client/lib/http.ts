@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosRequestHeaders } from "axios";
 import { getApiUrl } from "./api";
 
 const api = axios.create({
@@ -6,20 +6,18 @@ const api = axios.create({
   withCredentials: false,
 });
 
-// Attach access token to every request if available
 api.interceptors.request.use((config) => {
   if (typeof window === "undefined") return config;
   const token = window.localStorage.getItem("token");
   if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
+    if (!config.headers) {
+      config.headers = {} as AxiosRequestHeaders;
+    }
+    (config.headers as AxiosRequestHeaders).Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
 
 async function refreshAccessToken(): Promise<string | null> {
@@ -29,7 +27,6 @@ async function refreshAccessToken(): Promise<string | null> {
   if (!refreshToken) return null;
 
   if (!refreshPromise) {
-    isRefreshing = true;
     refreshPromise = api
       .get("/auth/refresh", {
         headers: { Authorization: `Bearer ${refreshToken}` },
@@ -44,7 +41,6 @@ async function refreshAccessToken(): Promise<string | null> {
       })
       .catch(() => null)
       .finally(() => {
-        isRefreshing = false;
         refreshPromise = null;
       });
   }
@@ -57,7 +53,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If unauthorized, try refresh once then retry the original request
     if (
       error.response?.status === 401 &&
       !originalRequest?._retry &&
@@ -67,14 +62,13 @@ api.interceptors.response.use(
 
       const newToken = await refreshAccessToken();
       if (newToken) {
-        originalRequest.headers = {
-          ...originalRequest.headers,
-          Authorization: `Bearer ${newToken}`,
-        };
+        originalRequest.headers =
+          (originalRequest.headers as AxiosRequestHeaders | undefined) ??
+          ({} as AxiosRequestHeaders);
+        (originalRequest.headers as AxiosRequestHeaders).Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       }
 
-      // Refresh failed – clear tokens and optionally redirect later
       window.localStorage.removeItem("token");
       window.localStorage.removeItem("refreshToken");
     }

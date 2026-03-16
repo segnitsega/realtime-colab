@@ -56,8 +56,8 @@ const startServer = async () => {
     setDMSocketInstance(io);
     initSocket(io);
 
-    httpServer.listen(3000, () =>
-      console.log("HTTP server running on port 3000"),
+    httpServer.listen(5000, () =>
+      console.log("HTTP server running on port 5000"),
     );
   } catch (e) {
     console.log("Server startup failed", e);

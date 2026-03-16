@@ -6,7 +6,7 @@ export function getApiUrl(): string {
     return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "");
   }
   if (typeof window !== "undefined") return window.location.origin;
-  return "http://localhost:3000";
+  return "http://localhost:5000";
 }
 
 export const authApi = {
