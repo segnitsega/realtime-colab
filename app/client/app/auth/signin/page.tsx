@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { signInSchema, type SignInInput } from "validation";
 import { authApi } from "@/lib/api";
+import { api } from "@/lib/http";
 import { cn } from "@/lib/utils";
 
 export default function SignInPage() {
@@ -23,16 +24,8 @@ export default function SignInPage() {
 
   const mutation = useMutation({
     mutationFn: async (values: SignInInput) => {
-      const res = await fetch(authApi.login(), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data?.error?.message ?? data?.message ?? "Sign in failed.");
-      }
-      return data;
+      const res = await api.post(authApi.login(), values);
+      return res.data;
     },
     onSuccess: (data) => {
       const token = data?.data?.token;

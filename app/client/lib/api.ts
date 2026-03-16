@@ -1,7 +1,3 @@
-/**
- * Base URL for the backend API.
- * Set NEXT_PUBLIC_API_URL in .env when the API runs on a different host/port (e.g. http://localhost:4000).
- */
 export function getApiUrl(): string {
   if (
     typeof process.env.NEXT_PUBLIC_API_URL === "string" &&
