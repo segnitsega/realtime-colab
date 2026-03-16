@@ -10,6 +10,7 @@ export const getUser = async (req: Request, res: Response) => {
     data: {
       user: {
         id: user._id,
+        displayName: user.displayName,
         username: user.username,
         email: user.email,
         avatarUrl: user.avatar_url,
@@ -31,6 +32,7 @@ export const getUsers = async (req: Request, res: Response) => {
     data: {
       users: users.map((user) => ({
         id: user._id,
+        displayName: user.displayName,
         username: user.username,
         email: user.email,
         avatarUrl: user.avatar_url,

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Zap } from 'lucide-react';
+import Link from "next/link";
+import { Zap } from "lucide-react";
 
 export function Header() {
   return (
@@ -14,19 +14,21 @@ export function Header() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/25">
             <Zap className="h-5 w-5 text-white" />
           </div>
-          <span className="hidden sm:inline tracking-tight">realtime co-lab</span>
+          <span className="hidden sm:inline tracking-tight">
+            realtime co-lab
+          </span>
           <span className="sm:hidden text-sm">co-lab</span>
         </Link>
 
         <nav className="flex items-center gap-2 sm:gap-3">
           <Link
-            href="/signin"
+            href="/auth/signin"
             className="rounded-lg px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800/80 hover:text-slate-50"
           >
             Sign In
           </Link>
           <Link
-            href="/signup"
+            href="/auth/signup"
             className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-950"
           >
             Sign Up

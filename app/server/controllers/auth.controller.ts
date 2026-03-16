@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { signInSchema, signUpSchema } from "validation";
 import { AppError } from "../utils/AppError";
 import {
   signup,
@@ -20,7 +21,13 @@ const ensureAuth = (req: Request): string => {
 };
 
 export const signupController = async (req: Request, res: Response) => {
-  const result = await signup(req.body);
+  const parsed = signUpSchema.safeParse(req.body);
+  if (!parsed.success) {
+    const first = parsed.error.flatten().fieldErrors;
+    const message = Object.values(first).flat().join(". ") || "Validation failed";
+    throw new AppError(message, 400);
+  }
+  const result = await signup(parsed.data);
   res.status(201).json({
     success: true,
     message: "User created successfully",
@@ -29,7 +36,13 @@ export const signupController = async (req: Request, res: Response) => {
 };
 
 export const loginController = async (req: Request, res: Response) => {
-  const result = await login(req.body);
+  const parsed = signInSchema.safeParse(req.body);
+  if (!parsed.success) {
+    const first = parsed.error.flatten().fieldErrors;
+    const message = Object.values(first).flat().join(". ") || "Validation failed";
+    throw new AppError(message, 400);
+  }
+  const result = await login(parsed.data);
   res.status(200).json({
     success: true,
     message: "Login successful",

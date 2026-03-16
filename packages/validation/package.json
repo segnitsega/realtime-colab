@@ -1,8 +1,12 @@
 {
-  "name": "shared",
+  "name": "validation",
   "version": "1.0.0",
-  "description": "",
+  "description": "Shared validation schemas",
   "main": "index.ts",
+  "types": "index.ts",
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

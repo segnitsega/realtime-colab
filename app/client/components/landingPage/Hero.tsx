@@ -5,7 +5,7 @@ import { Zap, ArrowRight } from 'lucide-react';
 
 export function Hero() {
   return (
-    <section className="relative w-full overflow-hidden px-4 py-20 sm:px-6 sm:py-32 lg:px-8 lg:py-36">
+    <section className="relative w-full overflow-hidden px-4 py-20 sm:px-6 sm:py-32 lg:px-8 lg:py-30">
       {/* Dark blue gradient orbs */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-40 left-1/2 h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-blue-600/20 blur-[128px]" />

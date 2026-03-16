@@ -28,11 +28,12 @@ const createTokens = (userId: string, username: string) => {
 };
 
 export const signup = async (data: {
+  displayName?: string;
   email: string;
   username: string;
   password: string;
 }) => {
-  const { email, username, password } = data;
+  const { displayName, email, username, password } = data;
   if (!email || !username || !password) {
     throw new AppError("Email, username, and password are required", 400);
   }
@@ -47,6 +48,7 @@ export const signup = async (data: {
   const hashedPassword = await bcrypt.hash(password, salt);
 
   const newUser = new User({
+    displayName: displayName?.trim() || undefined,
     email,
     username,
     password: hashedPassword,
@@ -64,6 +66,7 @@ export const signup = async (data: {
     refreshToken,
     user: {
       id: newUser._id,
+      displayName: newUser.displayName,
       username: newUser.username,
       email: newUser.email,
     },
@@ -97,6 +100,7 @@ export const login = async (data: { email: string; password: string }) => {
     refreshToken,
     user: {
       id: user._id,
+      displayName: user.displayName,
       username: user.username,
       email: user.email,
       avatarUrl: user.avatar_url,
@@ -177,6 +181,7 @@ export const handleGoogleCallback = async (code: string) => {
     const baseUsername = googleUser.email.split("@")[0];
     const randomSuffix = Math.floor(Math.random() * 10000);
     user = new User({
+      displayName: googleUser.name ?? undefined,
       email: googleUser.email,
       username: `${baseUsername}_${randomSuffix}`,
       googleId: googleUser.id,
@@ -198,6 +203,7 @@ export const handleGoogleCallback = async (code: string) => {
     refreshToken,
     user: {
       id: user._id,
+      displayName: user.displayName,
       username: user.username,
       email: user.email,
       avatarUrl: user.avatar_url,
@@ -245,6 +251,7 @@ export const handleDiscordCallback = async (code: string) => {
 
   if (!user) {
     user = new User({
+      displayName: discordUser.global_name ?? discordUser.username ?? undefined,
       email: discordUser.email,
       username: `${discordUser.username}_${Math.floor(Math.random() * 1000)}`,
       discordId: discordUser.id,
@@ -266,6 +273,7 @@ export const handleDiscordCallback = async (code: string) => {
     refreshToken,
     user: {
       id: user._id,
+      displayName: user.displayName,
       username: user.username,
       email: user.email,
       avatarUrl: user.avatar_url,
@@ -278,6 +286,7 @@ export const getProfile = async (userId: string) => {
   if (!user) throw new AppError("User not found", 404);
   return {
     id: user._id,
+    displayName: user.displayName,
     username: user.username,
     email: user.email,
     avatarUrl: user.avatar_url,
@@ -290,6 +299,7 @@ export const getProfile = async (userId: string) => {
 export const updateProfile = async (
   userId: string,
   data: {
+    displayName?: string;
     username?: string;
     email?: string;
     avatarUrl?: string;
@@ -299,6 +309,7 @@ export const updateProfile = async (
   },
 ) => {
   const updates: {
+    displayName?: string;
     username?: string;
     email?: string;
     avatar_url?: string;
@@ -306,6 +317,7 @@ export const updateProfile = async (
     status?: string;
   } = {};
 
+  if (data.displayName !== undefined) updates.displayName = data.displayName?.trim() || undefined;
   if (data.username) {
     const existing = await User.findOne({
       username: data.username,
@@ -337,6 +349,7 @@ export const updateProfile = async (
 
   return {
     id: updatedUser._id,
+    displayName: updatedUser.displayName,
     username: updatedUser.username,
     email: updatedUser.email,
     avatarUrl: updatedUser.avatar_url,
