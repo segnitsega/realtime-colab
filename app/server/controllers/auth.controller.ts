@@ -20,6 +20,8 @@ const ensureAuth = (req: Request): string => {
   return userId;
 };
 
+const isProd = process.env.NODE_ENV === "production";
+
 export const signupController = async (req: Request, res: Response) => {
   const parsed = signUpSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -28,10 +30,27 @@ export const signupController = async (req: Request, res: Response) => {
     throw new AppError(message, 400);
   }
   const result = await signup(parsed.data);
+
+  res.cookie("token", result.token, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    maxAge: 2 * 60 * 60 * 1000,
+  });
+
+  res.cookie("refreshToken", result.refreshToken, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
   res.status(201).json({
     success: true,
     message: "User created successfully",
-    data: result,
+    data: {
+      user: result.user,
+    },
   });
 };
 
@@ -43,21 +62,45 @@ export const loginController = async (req: Request, res: Response) => {
     throw new AppError(message, 400);
   }
   const result = await login(parsed.data);
+
+  res.cookie("token", result.token, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    maxAge: 2 * 60 * 60 * 1000,
+  });
+
+  res.cookie("refreshToken", result.refreshToken, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
   res.status(200).json({
     success: true,
     message: "Login successful",
-    data: result,
+    data: {
+      user: result.user,
+    },
   });
 };
 
 export const refreshController = async (req: Request, res: Response) => {
   try {
-    const refreshToken =
-      req.headers["authorization"]?.split(" ")[1];
-    const result = await refreshAccessToken(refreshToken ?? "");
+    const refreshToken = req.cookies?.refreshToken ?? "";
+    const result = await refreshAccessToken(refreshToken);
+
+
+    res.cookie("token", result.token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      maxAge: 2 * 60 * 60 * 1000,
+    });
+
     res.status(200).json({
       message: "Token refreshed",
-      token: result.token,
     });
   } catch (error) {
     if (error instanceof AppError) throw error;
