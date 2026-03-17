@@ -75,7 +75,7 @@ export const googleCallbackController = async (req: Request, res: Response) => {
     const result = await handleGoogleCallback(code);
 
     const clientUrl = process.env.CLIENT_URL ?? "http://localhost:3000";
-    const redirectUrl = new URL("/dashboard", clientUrl);
+    const redirectUrl = new URL("/channels", clientUrl);
     redirectUrl.searchParams.set("token", result.token);
     redirectUrl.searchParams.set("refreshToken", result.refreshToken);
 
@@ -99,7 +99,7 @@ export const discordCallbackController = async (req: Request, res: Response) => 
     const result = await handleDiscordCallback(code);
 
     const clientUrl = process.env.CLIENT_URL ?? "http://localhost:3000";
-    const redirectUrl = new URL("/dashboard", clientUrl);
+    const redirectUrl = new URL("/channels", clientUrl);
     redirectUrl.searchParams.set("token", result.token);
     redirectUrl.searchParams.set("refreshToken", result.refreshToken);
 

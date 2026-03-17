@@ -30,17 +30,3 @@ export const signUpSchema = z.object({
 
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
-
-export interface User {
-  _id: string;
-  email: string;
-  username: string;
-  passwordHash?: string;
-  avatarUrl?: string;
-  bio?: string;
-  online: boolean;
-  last_active: Date;
-  status: string;
-  createdAt: Date;
-  updatedAt: Date;
-}

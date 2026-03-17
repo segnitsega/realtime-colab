@@ -37,7 +37,8 @@ export default function SignUpPage() {
       const refreshToken = data?.data?.refreshToken;
       if (token && typeof window !== "undefined") {
         window.localStorage.setItem("token", token);
-        if (refreshToken) window.localStorage.setItem("refreshToken", refreshToken);
+        if (refreshToken)
+          window.localStorage.setItem("refreshToken", refreshToken);
       }
       router.push("/");
       router.refresh();
@@ -80,14 +81,19 @@ export default function SignUpPage() {
         </Link>
 
         <div className="w-full max-w-[400px] rounded-2xl border border-slate-700/60 bg-slate-800/40 p-6 shadow-xl shadow-slate-950/50 backdrop-blur-sm sm:p-8">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-50">Create an account</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-50">
+            Create an account
+          </h1>
           <p className="mt-1 text-sm text-slate-400">
             Enter your details below to get started.
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
             <div>
-              <label htmlFor="displayName" className="block text-sm font-medium text-slate-300">
+              <label
+                htmlFor="displayName"
+                className="block text-sm font-medium text-slate-300"
+              >
                 Display name <span className="text-slate-500">(optional)</span>
               </label>
               <div className="relative mt-1">
@@ -100,17 +106,22 @@ export default function SignUpPage() {
                   {...register("displayName")}
                   className={cn(
                     "w-full rounded-xl border border-slate-600 bg-slate-800/80 py-2.5 pl-10 pr-3 text-slate-50 placeholder:text-slate-500",
-                    "focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    "focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
                   )}
                 />
               </div>
               {errors.displayName && (
-                <p className="mt-1 text-xs text-red-400">{errors.displayName.message}</p>
+                <p className="mt-1 text-xs text-red-400">
+                  {errors.displayName.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-slate-300">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-slate-300"
+              >
                 Username
               </label>
               <div className="relative mt-1">
@@ -123,17 +134,22 @@ export default function SignUpPage() {
                   {...register("username")}
                   className={cn(
                     "w-full rounded-xl border border-slate-600 bg-slate-800/80 py-2.5 pl-10 pr-3 text-slate-50 placeholder:text-slate-500",
-                    "focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    "focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
                   )}
                 />
               </div>
               {errors.username && (
-                <p className="mt-1 text-xs text-red-400">{errors.username.message}</p>
+                <p className="mt-1 text-xs text-red-400">
+                  {errors.username.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-300"
+              >
                 Email
               </label>
               <div className="relative mt-1">
@@ -146,17 +162,22 @@ export default function SignUpPage() {
                   {...register("email")}
                   className={cn(
                     "w-full rounded-xl border border-slate-600 bg-slate-800/80 py-2.5 pl-10 pr-3 text-slate-50 placeholder:text-slate-500",
-                    "focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    "focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
                   )}
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>
+                <p className="mt-1 text-xs text-red-400">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-300"
+              >
                 Password
               </label>
               <div className="relative mt-1">
@@ -169,12 +190,14 @@ export default function SignUpPage() {
                   {...register("password")}
                   className={cn(
                     "w-full rounded-xl border border-slate-600 bg-slate-800/80 py-2.5 pl-10 pr-3 text-slate-50 placeholder:text-slate-500",
-                    "focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    "focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
                   )}
                 />
               </div>
               {errors.password && (
-                <p className="mt-1 text-xs text-red-400">{errors.password.message}</p>
+                <p className="mt-1 text-xs text-red-400">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -189,7 +212,7 @@ export default function SignUpPage() {
               disabled={mutation.isPending}
               className={cn(
                 "flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-500 disabled:opacity-50",
-                "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900",
               )}
             >
               {mutation.isPending ? (
@@ -246,7 +269,11 @@ export default function SignUpPage() {
                 onClick={() => handleOAuth("discord")}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-600 bg-slate-800/50 py-2.5 text-sm font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-700/50"
               >
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="h-5 w-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
                 </svg>
                 Discord
@@ -256,7 +283,10 @@ export default function SignUpPage() {
 
           <p className="mt-6 text-center text-sm text-slate-500">
             Already have an account?{" "}
-            <Link href="/auth/signin" className="font-medium text-blue-400 hover:text-blue-300">
+            <Link
+              href="/auth/signin"
+              className="font-medium text-blue-400 hover:text-blue-300"
+            >
               Sign in
             </Link>
           </p>
