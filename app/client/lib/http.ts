@@ -1,45 +1,21 @@
-import axios, { type AxiosRequestHeaders } from "axios";
+import axios from "axios";
 import { getApiUrl } from "./api";
+
+const RETURN_PATH = "";
 
 const api = axios.create({
   baseURL: getApiUrl(),
-  withCredentials: false,
+  withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  if (typeof window === "undefined") return config;
-  const token = window.localStorage.getItem("token");
-  if (token) {
-    if (!config.headers) {
-      config.headers = {} as AxiosRequestHeaders;
-    }
-    (config.headers as AxiosRequestHeaders).Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+let refreshPromise: Promise<boolean> | null = null;
 
-let refreshPromise: Promise<string | null> | null = null;
-
-async function refreshAccessToken(): Promise<string | null> {
-  if (typeof window === "undefined") return null;
-
-  const refreshToken = window.localStorage.getItem("refreshToken");
-  if (!refreshToken) return null;
-
+async function refreshAccessToken(): Promise<boolean> {
   if (!refreshPromise) {
     refreshPromise = api
-      .get("/auth/refresh", {
-        headers: { Authorization: `Bearer ${refreshToken}` },
-      })
-      .then((res) => {
-        const newToken = res.data?.token as string | undefined;
-        if (newToken) {
-          window.localStorage.setItem("token", newToken);
-          return newToken;
-        }
-        return null;
-      })
-      .catch(() => null)
+      .get("/auth/refresh")
+      .then(() => true)
+      .catch(() => false)
       .finally(() => {
         refreshPromise = null;
       });
@@ -60,22 +36,21 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
-      const newToken = await refreshAccessToken();
-      if (newToken) {
-        originalRequest.headers =
-          (originalRequest.headers as AxiosRequestHeaders | undefined) ??
-          ({} as AxiosRequestHeaders);
-        (originalRequest.headers as AxiosRequestHeaders).Authorization = `Bearer ${newToken}`;
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
         return api(originalRequest);
       }
 
-      window.localStorage.removeItem("token");
-      window.localStorage.removeItem("refreshToken");
+      sessionStorage.setItem(
+        RETURN_PATH,
+        window.location.pathname + window.location.search,
+      );
+
+      window.location.href = "/auth/signin";
     }
 
     return Promise.reject(error);
   },
 );
 
-export { api };
-
+export default api;

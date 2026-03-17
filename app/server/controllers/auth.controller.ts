@@ -91,7 +91,6 @@ export const refreshController = async (req: Request, res: Response) => {
     const refreshToken = req.cookies?.refreshToken ?? "";
     const result = await refreshAccessToken(refreshToken);
 
-
     res.cookie("token", result.token, {
       httpOnly: true,
       secure: isProd,

@@ -8,11 +8,18 @@ import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { signInSchema, type SignInInput } from "validation";
 import { authApi } from "@/lib/api";
-import { api } from "@/lib/http";
+import api from "@/lib/http";
 import { cn } from "@/lib/utils";
+
+function getSafeRedirectPath(path: string | null): string {
+  if (!path || typeof path !== "string") return "/channels";
+  if (!path.startsWith("/") || path.startsWith("/auth")) return "/channels";
+  return path;
+}
 
 export default function SignInPage() {
   const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -27,15 +34,12 @@ export default function SignInPage() {
       const res = await api.post(authApi.login(), values);
       return res.data;
     },
-    onSuccess: (data) => {
-      const token = data?.data?.token;
-      const refreshToken = data?.data?.refreshToken;
-      if (token && typeof window !== "undefined") {
-        window.localStorage.setItem("token", token);
-        if (refreshToken)
-          window.localStorage.setItem("refreshToken", refreshToken);
-      }
-      router.push("/");
+    onSuccess: () => {
+      const stored = sessionStorage.getItem("RETURN_PATH");
+      if (stored) sessionStorage.removeItem("RETURN_PATH");
+      const path = getSafeRedirectPath(stored ?? null);
+
+      router.push(path);
       router.refresh();
     },
   });

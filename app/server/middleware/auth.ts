@@ -15,7 +15,8 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction,
 ): void => {
-  const token = req.headers["authorization"]?.split(" ")[1];
+  const token =
+    req.cookies?.token ?? req.headers["authorization"]?.split(" ")[1];
 
   if (!token) {
     return next(new AppError("No authentication token provided", 401));

@@ -8,7 +8,7 @@ export const signInSchema = z.object({
 export const signUpSchema = z.object({
   displayName: z
     .string()
-    .max(5, "Display name must be at most 5 characters")
+    .min(5, "Display name must be at least 5 characters")
     .optional()
     .transform((v) => (v?.trim() === "" ? undefined : v?.trim())),
   username: z
