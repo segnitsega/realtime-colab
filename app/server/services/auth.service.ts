@@ -19,11 +19,13 @@ const createTokens = (userId: string, username: string) => {
     secretKey,
     { expiresIn: "2h" },
   );
+
   const refreshToken = jwt.sign(
     { id: userId, username },
     refreshKey,
     { expiresIn: "7d" },
   );
+
   return { token, refreshToken };
 };
 
@@ -34,9 +36,6 @@ export const signup = async (data: {
   password: string;
 }) => {
   const { displayName, email, username, password } = data;
-  if (!email || !username || !password) {
-    throw new AppError("Email, username, and password are required", 400);
-  }
 
   const existingEmail = await User.findOne({ email });
   if (existingEmail) throw new AppError("Email is already registered", 409);
@@ -58,6 +57,7 @@ export const signup = async (data: {
     String(newUser._id),
     newUser.username,
   );
+
   newUser.refreshToken = refreshToken;
   await newUser.save();
 
@@ -75,12 +75,11 @@ export const signup = async (data: {
 
 export const login = async (data: { email: string; password: string }) => {
   const { email, password } = data;
-  if (!email || !password) {
-    throw new AppError("Email and password are required", 400);
-  }
 
   const user = await User.findOne({ email });
+
   if (!user) throw new AppError("Invalid email or password", 401);
+
   if (!user.password) {
     throw new AppError("Please log in using your OAuth provider", 400);
   }
@@ -134,7 +133,7 @@ export const refreshAccessToken = async (refreshToken: string) => {
   });
 };
 
-export const getGoogleAuthUrl = () => {
+export const getGoogleAuthUrl = (state?: string) => {
   const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
   const options = {
     client_id: process.env.GOOGLE_CLIENT_ID as string,
@@ -145,6 +144,7 @@ export const getGoogleAuthUrl = () => {
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email",
     ].join(" "),
+    ...(state ? { state } : {}),
   };
   return `${rootUrl}?${new URLSearchParams(options).toString()}`;
 };
@@ -211,13 +211,14 @@ export const handleGoogleCallback = async (code: string) => {
   };
 };
 
-export const getDiscordAuthUrl = () => {
+export const getDiscordAuthUrl = (state?: string) => {
   const rootUrl = "https://discord.com/api/oauth2/authorize";
   const options = {
     client_id: process.env.DISCORD_CLIENT_ID as string,
     redirect_uri: process.env.DISCORD_REDIRECT_URI as string,
     response_type: "code",
     scope: ["identify", "email"].join(" "),
+    ...(state ? { state } : {}),
   };
   return `${rootUrl}?${new URLSearchParams(options).toString()}`;
 };
@@ -278,84 +279,6 @@ export const handleDiscordCallback = async (code: string) => {
       email: user.email,
       avatarUrl: user.avatar_url,
     },
-  };
-};
-
-export const getProfile = async (userId: string) => {
-  const user = await User.findById(userId);
-  if (!user) throw new AppError("User not found", 404);
-  return {
-    id: user._id,
-    displayName: user.displayName,
-    username: user.username,
-    email: user.email,
-    avatarUrl: user.avatar_url,
-    bio: user.bio,
-    status: user.status,
-    role: user.role,
-  };
-};
-
-export const updateProfile = async (
-  userId: string,
-  data: {
-    displayName?: string;
-    username?: string;
-    email?: string;
-    avatarUrl?: string;
-    avatar_url?: string;
-    bio?: string;
-    status?: string;
-  },
-) => {
-  const updates: {
-    displayName?: string;
-    username?: string;
-    email?: string;
-    avatar_url?: string;
-    bio?: string;
-    status?: string;
-  } = {};
-
-  if (data.displayName !== undefined) updates.displayName = data.displayName?.trim() || undefined;
-  if (data.username) {
-    const existing = await User.findOne({
-      username: data.username,
-      _id: { $ne: userId },
-    });
-    if (existing) throw new AppError("Username is already taken", 409);
-    updates.username = data.username;
-  }
-
-  if (data.email) {
-    const existing = await User.findOne({
-      email: data.email,
-      _id: { $ne: userId },
-    });
-    if (existing) throw new AppError("Email is already registered", 409);
-    updates.email = data.email;
-  }
-
-  if (data.avatarUrl !== undefined || data.avatar_url !== undefined) {
-    updates.avatar_url = data.avatarUrl ?? data.avatar_url;
-  }
-  if (data.bio !== undefined) updates.bio = data.bio;
-  if (data.status !== undefined) updates.status = data.status;
-
-  const updatedUser = await User.findByIdAndUpdate(userId, updates, {
-    new: true,
-  });
-  if (!updatedUser) throw new AppError("User not found", 404);
-
-  return {
-    id: updatedUser._id,
-    displayName: updatedUser.displayName,
-    username: updatedUser.username,
-    email: updatedUser.email,
-    avatarUrl: updatedUser.avatar_url,
-    bio: updatedUser.bio,
-    status: updatedUser.status,
-    role: updatedUser.role,
   };
 };
 

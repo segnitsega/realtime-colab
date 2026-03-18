@@ -8,8 +8,6 @@ import {
   googleCallbackController,
   discordAuthController,
   discordCallbackController,
-  getMeController,
-  updateMeController,
   logoutController,
 } from "../controllers/auth.controller";
 
@@ -25,6 +23,4 @@ authRouter.get("/google/callback", googleCallbackController);
 authRouter.get("/discord", discordAuthController);
 authRouter.get("/discord/callback", discordCallbackController);
 
-authRouter.get("/me", authMiddleware, getMeController);
-authRouter.put("/me", authMiddleware, updateMeController);
 authRouter.post("/logout", authMiddleware, logoutController);

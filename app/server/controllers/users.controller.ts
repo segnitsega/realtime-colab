@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
-import { getAllUsers, getUserById } from "../services/users.service";
+import {
+  getAllUsers,
+  getProfile,
+  getUserById,
+  updateProfile,
+} from "../services/users.service";
 
 export const getUser = async (req: Request, res: Response) => {
   const id = req.params.id as string;
@@ -43,5 +48,23 @@ export const getUsers = async (req: Request, res: Response) => {
         role: user.role,
       })),
     },
+  });
+};
+
+export const getMeController = async (req: Request, res: Response) => {
+  const user = await getProfile(req.user!.id);
+  res.status(200).json({
+    success: true,
+    message: "Current user profile fetched successfully",
+    data: { user },
+  });
+};
+
+export const updateMeController = async (req: Request, res: Response) => {
+  const user = await updateProfile(req.user!.id, req.body);
+  res.status(200).json({
+    success: true,
+    message: "User profile updated successfully",
+    data: { user },
   });
 };

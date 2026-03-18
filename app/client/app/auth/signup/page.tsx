@@ -54,8 +54,13 @@ export default function SignUpPage() {
   };
 
   const handleOAuth = (provider: "google" | "discord") => {
-    const url = provider === "google" ? authApi.google() : authApi.discord();
-    window.location.href = url;
+    const base = provider === "google" ? authApi.google() : authApi.discord();
+    const stored = sessionStorage.getItem("RETURN_PATH");
+    const redirectPath = getSafeRedirectPath(stored ?? null);
+
+    const url = new URL(base);
+    url.searchParams.set("redirect", redirectPath);
+    window.location.href = url.toString();
   };
 
   return (
